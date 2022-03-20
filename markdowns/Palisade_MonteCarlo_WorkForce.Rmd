@@ -1,0 +1,69 @@
+---
+title: "Work Force"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(plotly)
+library(dplyr)
+```
+
+```{r data}
+data <- as.data.frame(read.csv("../output/WorkForce/SimResults.csv"))
+dataSum <- as.data.frame(read.csv("../output/WorkForce/ResultSummary.csv"))
+
+data.levels = c("Level_1", "Level_2", "Level_3", "Total")
+year.levels = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+
+```
+
+Column {.sidebar data-width=200}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput("Levels", label="Select the employee level:", choice=data.levels)
+selectInput("Years", label="Select the year for box plot:", choice=year.levels)
+
+```
+Column {data-width=400}
+-----------------------------------------------------------------------
+### **Box plot**: Employee number distribution at selected year
+
+```{r}
+renderPlotly({
+  plot_ly(y=~data[data$Yr==input$Years, 2], type="box", name="Level 1") %>%
+  add_trace(y=~data[data$Yr==input$Years, 3], name="Level 2") %>%
+  add_trace(y=~data[data$Yr==input$Years, 4], name="Level 3")
+})
+```
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### **Histogram**: Distribution of the 10-year simulation results
+
+```{r}
+renderPlotly({
+  plot_ly(x=data[data$Yr==11, input$Levels], type="histogram") %>%
+  layout(xaxis=list(title="Numbe of Employee"), yaxis=list(title="Count"))
+})
+
+```
+
+### **Bar chart**: Changes over the simulated years
+
+```{r}
+renderPlotly({
+  plot_ly(x=dataSum[dataSum$Level==input$Levels, "Yr"], y=dataSum[dataSum$Level==input$Levels, "Sim_Mean"],
+          type="bar") %>%
+  layout(xaxis=list(title="Year"), yaxis=list(title="Mean of employee count"))
+})
+
+```
+

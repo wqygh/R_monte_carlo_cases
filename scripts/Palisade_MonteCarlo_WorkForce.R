@@ -3,13 +3,23 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 
-EmpTargetTable <- read_xlsx("data/TargetStaff.xlsx")
+ResultStCaculator <- function(SimResultTb, year, level){
+  
+  SimMean <- mean(SimResultTb[SimResultTb$Yr == year, level])
+  SimSd <- sd(SimResultTb[SimResultTb$Yr == year, level])
+  SimLowb <- SimMean - 1.96*SimSd
+  SimUpb <- SimMean + 1.96*SimSd
+  result  <- list(year, level, SimMean, SimSd, SimLowb, SimUpb)
+  
+  return(result)
+}
+
+EmpTargetTable <- as.data.frame(read_xlsx("./data/TargetStaff.xlsx"))
 SimNum <- 5000
 SimYear <- nrow(EmpTargetTable) - 1
 
 SDP <- 0.1
 
-# EmpNumbTb <- data.frame(matrix(ncol = 5, nrow = SimYear))
 # Initiate an empty data frame to store results
 SimResultTb <- data.frame(Yr = NA, Level_1 = NA, Level_2 = NA, Level_3 = NA
                         ,Total = NA, SimRd = NA)
@@ -54,7 +64,7 @@ for (r in 1:SimNum){
   
   TotalCurrent <- EmpNumTb[y, "Total"] - (L1Fired + L2Fired + L3Fired)
   
-  NewHPool <- rnorm(1, (EmpTargetTable[[y+1,"Total"]]-TotalCurrent), ((EmpTargetTable[[y+1,"Total"]]-TotalCurrent)*SDP))
+  NewHPool <- rnorm(1, (EmpTargetTable[y+1,"Total"]-TotalCurrent), ((EmpTargetTable[y+1,"Total"]-TotalCurrent)*SDP))
   NewHPool <- round(NewHPool, digits=0)
   NewL1H <- rbinom(1, NewHPool, EmpNewhireProb[1])
   NewL2H <- rbinom(1, NewHPool - NewL1H, EmpNewhireProb[2]/(1 - EmpNewhireProb[1]))
@@ -69,31 +79,20 @@ for (r in 1:SimNum){
   } 
   
   SimResultTb <- rbind(SimResultTb, EmpNumTb)
-  }
+}
 
 SimResultTb <- SimResultTb[2:nrow(SimResultTb),] # remove first row with NAs
-
-
-# d <- density(SimResultTb[SimResultTb$Yr == 11, "Total"])
-# plot(d)
-
-ResultStCaculator <- function(year, level){
- SimMean <- mean(SimResultTb[SimResultTb$Yr == year, level])
- SimSd <- sd(SimResultTb[SimResultTb$Yr == year, level])
- SimLowb <- SimMean - 1.96*SimSd
- SimUpb <- SimMean + 1.96*SimSd
- result  <- list(year, level, SimMean, SimSd, SimLowb, SimUpb)
- 
- return(result)
- }
 
 ResultStTable <- data.frame(Yr = NA, Level = NA, Sim_Mean = NA, Sim_Sd = NA
                             ,Sim_LowerB = NA, Sim_UpperB = NA)
 for (y in 2:11){
   for (l in EmpLevel[2:5]){
-    r <- ResultStCaculator(y, l)
-    ResultStTable <- rbind(ResultStTable,r)
+    r <- ResultStCaculator(SimResultTb, y, l)
+    ResultStTable <- rbind(ResultStTable, r)
   }
 }
 
 ResultStTable <- ResultStTable[2:nrow(ResultStTable),]
+
+write.csv(SimResultTb, "output/WorkForce/SimResults.csv", row.names=FALSE)
+write.csv(ResultStTable, "output/WorkForce/ResultSummary.csv", row.names=FALSE)
