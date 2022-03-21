@@ -15,8 +15,8 @@ library(dplyr)
 ```
 
 ```{r data}
-data <- as.data.frame(read.csv("../output/WorkForce/SimResults.csv"))
-dataSum <- as.data.frame(read.csv("../output/WorkForce/ResultSummary.csv"))
+data <- as.data.frame(read.csv("SimResults.csv"))
+dataSum <- as.data.frame(read.csv("ResultSummary.csv"))
 
 data.levels = c("Level_1", "Level_2", "Level_3", "Total")
 year.levels = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
