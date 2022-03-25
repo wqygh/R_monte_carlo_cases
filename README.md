@@ -10,5 +10,8 @@ Monte Carlo simulation cases studies using R
 - shiny
 - plotly
 
+* Set the root directory of the is repository as working directory in R
+
 ## Cases
 1. Work Force
+2. Profile Analysis
