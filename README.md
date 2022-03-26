@@ -3,6 +3,7 @@ Monte Carlo simulation cases studies using R
 
 ## Needed R libraries
 - readxl
+- MASS
 - plyr
 - dplyr
 - tidyverse
